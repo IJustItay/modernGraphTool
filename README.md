@@ -12,6 +12,12 @@ You can discover more at the [modernGraphTool documentation page][DOCS].
 https://potatosalad775.github.io/modernGraphTool
 
 Also available in Squiglink : https://silicagel.squig.link
+## Custom Features & Credits
+
+This fork of `modernGraphTool` includes several massive upgrades developed by **[IJustItay](https://github.com/IJustItay)**:
+*   **AutoEQ WebAssembly Engine**: Integrated the `peqdb/autoeq-c` library directly into the modernGraphTool web worker for zero-latency, background thread filter calculations using WebAssembly.
+*   **Native SquigLoader**: Deep integrated `dov-vai/SquigLoader` capabilities. Allows you to seamlessly fetch and import external reviewer targets (e.g. crinacle, kr0mka, Super* Review) natively into the FR parser.
+*   **Mobile Device PEQ Connect**: Bypassed strict `navigator.hid` requirements to allow cross-platform browser support for the Device Connect plugin, enabling Network/Bluetooth PEQ pushing straight from mobile devices.
 
 ## Download
 
