@@ -30,9 +30,11 @@ export const UsbWebUsbConnector = (async function () {
                 // Find the HID interface
                 const config = this.usbDevice.configuration;
                 let claimed = false;
+                let dbg = "";
                 if (config) {
                     for (const iface of config.interfaces) {
                         const alt = iface.alternates[0];
+                        dbg += `[I${iface.interfaceNumber}C${alt.interfaceClass}S${alt.interfaceSubclass}]`;
                         if (alt.interfaceClass === 3 || alt.interfaceClass === 255) { // HID or Vendor-Specific
                             try {
                                 await this.usbDevice.claimInterface(iface.interfaceNumber);
@@ -41,6 +43,7 @@ export const UsbWebUsbConnector = (async function () {
                                 claimed = true;
                                 break;
                             } catch (e) {
+                                dbg += `!E:${e.name}!`;
                                 console.warn(`Could not claim interface ${iface.interfaceNumber}: ${e.message}`);
                             }
                         }
@@ -50,7 +53,7 @@ export const UsbWebUsbConnector = (async function () {
                 if (claimed) {
                     this._startPolling();
                 } else {
-                    throw new Error("No claimable HID or Vendor interface found. Ensure device is not exclusively locked by the OS.");
+                    throw new Error(`No claimable HID/Vendor IF. Dbg: ${dbg}`);
                 }
 
                 this.opened = true;
