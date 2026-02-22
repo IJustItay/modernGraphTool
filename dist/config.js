@@ -19,8 +19,8 @@ const CONFIG = {
       LOCATION: "BOTTOM_LEFT",                          // (BOTTOM_LEFT, BOTTOM_RIGHT, TOP_LEFT, TOP_RIGHT)
       POSITION: {
         LEFT: "0", RIGHT: "0", UP: "0", DOWN: "0",      // Fine-tune Label Location
-      },                                          
-      TEXT_SIZE: "20px", 
+      },
+      TEXT_SIZE: "20px",
       TEXT_WEIGHT: "600",                               // (100 ~ 900)
     },
     BASELINE_LABEL: {
@@ -54,7 +54,7 @@ const CONFIG = {
   LANGUAGE: {
     LANGUAGE_LIST: [                                    // List of available languages. (Automatically fallbacks to "en" if not found)
       ["en", "English"], ["ko", "한국어"]
-    ],                        
+    ],
     ENABLE_I18N: true,                                  // Enable internationalization (Add Language selector to Misc Panel)
     ENABLE_SYSTEM_LANG_DETECTION: true,                 // Enable system language detection
   },
@@ -66,14 +66,16 @@ const CONFIG = {
   },
   // Watermark Settings
   WATERMARK: [
-    { TYPE: "TEXT", CONTENT: "© 2025 modernGraphTool", LOCATION: "BOTTOM_RIGHT",
+    {
+      TYPE: "TEXT", CONTENT: "© 2025 modernGraphTool", LOCATION: "BOTTOM_RIGHT",
       SIZE: "15px", FONT_FAMILY: "sans-serif", FONT_WEIGHT: "600", COLOR: "#000000", OPACITY: "0.4",
     },
     // You can even put multiple TEXT or IMAGE in Array. Randomly picked content will be rendered on every load.
-    { TYPE: "IMAGE", SIZE: "50px", LOCATION: "TOP_RIGHT", POSITION: {UP: "0", DOWN: "15", LEFT: "46", RIGHT: "0"}, OPACITY: "0.2",
+    {
+      TYPE: "IMAGE", SIZE: "50px", LOCATION: "TOP_RIGHT", POSITION: { UP: "0", DOWN: "15", LEFT: "46", RIGHT: "0" }, OPACITY: "0.2",
       CONTENT: [
         "./assets/images/icon_1.png", "./assets/images/icon_2.png", "./assets/images/icon_3.png",
-      ] 
+      ]
     }
   ],
   // Target configuration
@@ -81,15 +83,18 @@ const CONFIG = {
     // TARGET_MANIFEST works with modernGraphTool Core's internationalization features.
     // You can configure target data in default(EN) language...
     default: [
-      { type:"Harman",      files:["Harman IE 2019v2","Harman IE 2017v2"] },
-      { type:"Neutral",     files:["KEMAR DF (KB006x)","ISO 11904-2 DF","IEF Neutral 2023"] },
-      { type:"Reviewer",    files:["Banbeucmas","HBB","Precogvision","Super 22 Adjusted"] },
-      { type:"Preference",  files:["AutoEQ","Rtings","Sonarworks"] },
-      { type:"Δ",           files:["Universal ∆"] }
+      { type: "711 - Harman", files: ["Harman IE 2019v2", "Harman IE 2017v2"] },
+      { type: "711 - Neutral", files: ["KEMAR DF (KB006x)", "ISO 11904-2 DF", "IEF Neutral 2023"] },
+      { type: "711 - Reviewer", files: ["Banbeucmas", "HBB", "Precogvision", "Super 22 Adjusted"] },
+      { type: "711 - Preference", files: ["AutoEQ", "Rtings", "Sonarworks"] },
+      { type: "711 - Delta", files: ["Universal ∆"] },
+      { type: "5128 - Harman", files: ["Harman IE 2019 (5128)"] },
+      { type: "5128 - Neutral", files: ["Diffuse Field 5128", "JM-1"] },
+      { type: "5128 - Reviewer", files: ["Crinacle 5128", "Super Review 5128"] }
     ],
     // And add more languages as you want.
     i18n: {
-      ko: [{ type:"하만" }, { type:"뉴트럴" }, { type:"리뷰어" }, { type:"선호도" }]
+      ko: [{ type: "하만" }, { type: "뉴트럴" }, { type: "리뷰어" }, { type: "선호도" }]
     }
   },
   // ... Of course, if you're not interested in localization, you can just skip this setting, as below. 
@@ -122,12 +127,12 @@ const CONFIG = {
     LINK_LIST: {
       default: [
         { TITLE: "Github", URL: "https://www.github.com" },
-        { TITLE: "Docs", URL: "https://potatosalad775.github.io/modernGraphTool/docs" }, 
+        { TITLE: "Docs", URL: "https://potatosalad775.github.io/modernGraphTool/docs" },
       ],
       i18n: {
         ko: [
           { TITLE: "깃허브", URL: "https://www.github.com" },
-          { TITLE: "가이드", URL: "https://potatosalad775.github.io/modernGraphTool/docs" }, 
+          { TITLE: "가이드", URL: "https://potatosalad775.github.io/modernGraphTool/docs" },
         ]
       }
     },
