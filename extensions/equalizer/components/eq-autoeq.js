@@ -58,13 +58,13 @@ class EQAutoEQ extends HTMLElement {
     try {
       // Get the worker URL relative to this component
       const workerUrl = new URL('./util/equalizer.worker.js', import.meta.url);
-      this.worker = new Worker(workerUrl, { type: 'classic' });
+      this.worker = new Worker(workerUrl, { type: 'module' });
       this.workerReady = true;
-      
+
       this.worker.onmessage = (e) => {
         const { type, id, payload } = e.data;
         const pending = this.pendingRequests.get(id);
-        
+
         if (pending) {
           this.pendingRequests.delete(id);
           if (type === 'result') {
@@ -74,7 +74,7 @@ class EQAutoEQ extends HTMLElement {
           }
         }
       };
-      
+
       this.worker.onerror = (error) => {
         console.warn('AutoEQ Worker error, falling back to main thread:', error.message);
         this.workerReady = false;
@@ -89,13 +89,13 @@ class EQAutoEQ extends HTMLElement {
     return new Promise((resolve, reject) => {
       const id = ++this.requestId;
       this.pendingRequests.set(id, { resolve, reject });
-      
+
       this.worker.postMessage({
         type: 'autoEQ',
         id,
         payload: { source, target, options }
       });
-      
+
       // Timeout after 30 seconds
       setTimeout(() => {
         if (this.pendingRequests.has(id)) {
@@ -154,7 +154,7 @@ class EQAutoEQ extends HTMLElement {
   async _generateEQ() {
     const sourceUUID = this.currentDeviceUUID.source;
     const targetUUID = this.currentDeviceUUID.target;
-    
+
     if (!sourceUUID || !targetUUID) {
       alert('Please select both source and target graphs');
       return;
@@ -174,10 +174,10 @@ class EQAutoEQ extends HTMLElement {
 
     // Use the channel data directly from DataProvider
     const getChannelData = (data) => {
-      return data.channels?.AVG?.data || 
-             data.channels?.L?.data || 
-             data.channels?.R?.data ||
-             data.channels.data;
+      return data.channels?.AVG?.data ||
+        data.channels?.L?.data ||
+        data.channels?.R?.data ||
+        data.channels.data;
     };
 
     const sourcePoints = getChannelData(sourceData) || [];
@@ -192,7 +192,7 @@ class EQAutoEQ extends HTMLElement {
     };
 
     let filters;
-    
+
     // Try to use Web Worker for better performance
     if (this.worker && this.workerReady) {
       try {
@@ -224,27 +224,27 @@ class EQAutoEQ extends HTMLElement {
 
   _updateLanguage() {
     const freqLabel = this.querySelector('.ae-freq-label');
-    if(freqLabel) {
+    if (freqLabel) {
       freqLabel.innerHTML = StringLoader.getString('extension.equalizer.autoeq.freq-range', 'Frequency Range');
     }
     const qLabel = this.querySelector('.ae-q-label');
-    if(qLabel) {
+    if (qLabel) {
       qLabel.innerHTML = StringLoader.getString('extension.equalizer.autoeq.q-range', 'Q Range');
     }
     const gainLabel = this.querySelector('.ae-gain-label');
-    if(gainLabel) {
+    if (gainLabel) {
       gainLabel.innerHTML = StringLoader.getString('extension.equalizer.autoeq.gain-range', 'Gain Range');
     }
     const useShelfFilterLabel = this.querySelector('.ae-use-shelf-filter-label');
-    if(useShelfFilterLabel) {
+    if (useShelfFilterLabel) {
       useShelfFilterLabel.innerHTML = StringLoader.getString('extension.equalizer.autoeq.use-shelf-filter', 'Use Shelf Filter');
     }
     const description = this.querySelector('.ae-description');
-    if(description) {
+    if (description) {
       description.innerHTML = StringLoader.getString('extension.equalizer.autoeq.description', 'AutoEQ will use as many filters as available.');
     }
     const generateEQButton = this.querySelector('.ae-generate-eq');
-    if(generateEQButton) {
+    if (generateEQButton) {
       generateEQButton.innerHTML = StringLoader.getString('extension.equalizer.autoeq.run-button', 'Run AutoEQ');
     }
     const minLabels = this.querySelectorAll('.ae-min-label');

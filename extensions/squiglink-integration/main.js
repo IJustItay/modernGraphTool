@@ -1,5 +1,10 @@
-import { DataProvider } from "../../core.min.js";
+import { DataProvider, FRParser, URLProvider } from "../../core.min.js";
 
+// SquigLoader UI Constants
+const ADD_BUTTON_CLASS = 'add-phone-button';
+const ADD_SYMBOL = '+';
+const REMOVE_SYMBOL = '-';
+const WARNING_SYMBOL = '!';
 // Extension metadata for version compatibility
 export const EXTENSION_METADATA = {
   name: 'squiglink-integration',
@@ -12,7 +17,7 @@ export const EXTENSION_METADATA = {
 };
 
 window.activePhones = []; // Expose activePhones List Globally
-window.baseline = { p:null, l:null, fn:l=>l }; // Expose baseline Object Globally
+window.baseline = { p: null, l: null, fn: l => l }; // Expose baseline Object Globally
 window.targetWindow = null; // Expose targetWindow Object Globally
 
 // Function to update the active phones
@@ -96,6 +101,7 @@ export default class SquiglinkIntegration {
     await this._initElements();
     await this._loadDependencies();
     this._initSquiglinkFeatures();
+    this._initSquigLoader();
   }
 
   async _initElements() {
@@ -104,8 +110,8 @@ export default class SquiglinkIntegration {
     document.querySelector('.menu-bar-item[data-target="equalizer-panel"]')?.classList.add('extra');
     // Add IDs and Classes to Phone List for Squiglink Search integration
     const phoneList = document.querySelector('.ps-phone-list');
-    if (phoneList) { 
-      phoneList.id = 'phones'; 
+    if (phoneList) {
+      phoneList.id = 'phones';
       phoneList.classList.add('scroll');
     }
     phoneList.querySelectorAll('.ps-phone-item')?.forEach((item) => {
@@ -217,7 +223,7 @@ export default class SquiglinkIntegration {
       </style>`;
     // Add Intro Row to Target Selector
     const targetSelectorButtonGroup = document.querySelector('.tsc-collapse-button-group');
-    if(targetSelectorButtonGroup) {
+    if (targetSelectorButtonGroup) {
       // (Collapse) Button Group is only available when targetSelector is in multiple rows
       targetSelectorButtonGroup.appendChild(introRow);
     } else {
@@ -246,7 +252,7 @@ export default class SquiglinkIntegration {
       this._injectScript('./extensions/squiglink-integration/graphAnalytics.js'),
       this._injectScript('https://squig.link/squigsites.js')
     ]);
-    
+
     this.scriptsLoaded = true;
   }
 
@@ -274,7 +280,7 @@ export default class SquiglinkIntegration {
   }
 
   _connectGraphAnalytics() {
-    if(!this.config.ENABLE_ANALYTICS) return;
+    if (!this.config.ENABLE_ANALYTICS) return;
     // See if iframe gets CORS error when interacting with window.top
     let targetWindow;
     try {
@@ -300,7 +306,7 @@ export default class SquiglinkIntegration {
     // Connect Baseline analytics
     window.addEventListener('core:fr-baseline-updated', (e) => {
       const phone = DataProvider.frDataMap.get(e.detail.baselineUUID);
-      if(phone) {
+      if (phone) {
         window.pushPhoneTag("baseline_set", {
           phone: phone.type === 'target' ? phone.identifier.replace(/ Target$/, '') : phone.meta.name,
           dispBrand: phone.type === 'target' ? 'Target' : phone.meta.brand,
@@ -311,7 +317,7 @@ export default class SquiglinkIntegration {
     // Connect Phone analytics
     window.addEventListener('core:fr-phone-added', (e) => {
       const phone = DataProvider.frDataMap.get(e.detail.uuid);
-      if(phone) {
+      if (phone) {
         window.pushPhoneTag("phone_displayed", {
           phone: phone.meta.name,
           dispBrand: phone.meta.brand,
@@ -321,7 +327,7 @@ export default class SquiglinkIntegration {
     });
     window.addEventListener('core:fr-target-added', (e) => {
       const phone = DataProvider.frDataMap.get(e.detail.uuid);
-      if(phone) {
+      if (phone) {
         window.pushPhoneTag("phone_displayed", {
           phone: phone.identifier.replace(/ Target$/, ''),
           dispBrand: 'Target',
@@ -329,5 +335,202 @@ export default class SquiglinkIntegration {
         });
       }
     });
+  }
+
+  // Native SquigLoader Integration
+  _initSquigLoader() {
+    // Watch for changes in div#phones (when squigsites.js populates other databases)
+    const observer = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (
+              node.nodeType === Node.ELEMENT_NODE &&
+              node.classList.contains('fauxn-item')
+            ) {
+              this._addShowPhoneButton(node);
+            }
+          });
+        }
+      }
+    });
+
+    // Wait for phone list to exist before observing
+    const waitForList = setInterval(() => {
+      const phonesDiv = document.querySelector('div#phones');
+      if (phonesDiv) {
+        clearInterval(waitForList);
+        observer.observe(phonesDiv, { childList: true, subtree: true });
+      }
+    }, 100);
+  }
+
+  _addShowPhoneButton(fauxnItem) {
+    const addButton = document.createElement('button');
+    addButton.style.cssText = `
+      margin-left: auto;
+      margin-right: 12px;
+      font-size: 16px;
+      border-radius: 4px;
+      color: var(--gt-color-on-surface);
+      background-color: transparent;
+      border: 1px solid var(--gt-color-outline);
+      cursor: pointer;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-shrink: 0;
+    `;
+    addButton.textContent = ADD_SYMBOL;
+    addButton.classList.add(ADD_BUTTON_CLASS);
+
+    const fauxnLink = fauxnItem.querySelector('a.fauxn-link');
+    if (fauxnLink) {
+      fauxnLink.appendChild(addButton);
+    } else {
+      fauxnItem.appendChild(addButton);
+    }
+
+    const [brandName, phoneName] = fauxnItem
+      .getAttribute('name')
+      .split(': ')
+      .map((s) => s.trim());
+    const siteUrl = fauxnLink ? fauxnLink.href.split('/?share=')[0] + '/' : '';
+    const fileName = fauxnLink ? fauxnLink.href.split('/?share=')[1].replace(/_/g, ' ') : '';
+
+    addButton.addEventListener('click', async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      // Determine the full identifier
+      const fullIdentifier = brandName + ' ' + phoneName;
+      // Get the site name suffix from the siteUrl (e.g. from https://harpo.squig.link/ get "Harpo")
+      let siteSuffix = "";
+      try {
+        const urlObj = new URL(siteUrl);
+        if (urlObj.hostname.includes('.squig.link')) {
+          siteSuffix = urlObj.hostname.split('.')[0];
+        } else if (urlObj.pathname.includes('/lab/')) {
+          siteSuffix = urlObj.pathname.split('/')[2];
+        }
+        siteSuffix = siteSuffix.charAt(0).toUpperCase() + siteSuffix.slice(1);
+      } catch (e) {
+        siteSuffix = "Remote";
+      }
+
+      const dispSuffix = `(${siteSuffix})`;
+
+      // If it exists, remove it
+      if (DataProvider.isFRDataLoaded(fullIdentifier, dispSuffix)) {
+        DataProvider.removeFRData("phone", fullIdentifier);
+        addButton.textContent = ADD_SYMBOL;
+        return;
+      }
+
+      // Try to load external measurement
+      try {
+        addButton.textContent = '...';
+        await this._loadExternalFile(siteUrl, fileName, fullIdentifier, dispSuffix);
+        addButton.textContent = REMOVE_SYMBOL;
+      } catch (error) {
+        console.error('Error loading data for', phoneName, error);
+        addButton.textContent = WARNING_SYMBOL;
+      }
+    });
+  }
+
+  async _loadExternalFile(siteUrl, fileName, fullIdentifier, dispSuffix) {
+    const channelFiles = [];
+
+    // Make sure we have the exact filename variant from phone_book.json first
+    let actualFileNames = await this._findFilesInPhoneBook(siteUrl, fileName);
+    if (!actualFileNames || actualFileNames.length === 0) {
+      // Fallback to exactly what the link shared if phone_book.json failed
+      actualFileNames = [fileName];
+    }
+
+    // Try parsing the first valid one we find
+    const targetFileBasename = actualFileNames[0];
+
+    for (const channel of ['L', 'R']) {
+      const fullFileName = `${targetFileBasename} ${channel}.txt`;
+      // fixupUrl logic port from normal SquigLoader
+      let dataUrl = `${siteUrl}data/${fullFileName}`;
+      if (siteUrl.includes('silicagel') || siteUrl.includes('doltonius')) {
+        dataUrl = dataUrl.replace('/data/', '/data/phones/');
+      } else if (siteUrl.includes('/hana/')) {
+        dataUrl = dataUrl.replace('/data/', '/data/measurements/');
+      }
+
+      await this._fetchFile(dataUrl, channelFiles, fullFileName);
+    }
+
+    if (channelFiles.length !== 2) {
+      throw new Error("Failed to download L and R channels from remote database.");
+    }
+
+    // Parse the retrieved text contents using the built in parser
+    const leftParsed = await FRParser.parseFRData(channelFiles[0]);
+    const rightParsed = await FRParser.parseFRData(channelFiles[1]);
+
+    // Average them like the parser does
+    const avgParsed = {
+      data: leftParsed.data.map(([freq, lDb], index) => [
+        freq,
+        (lDb + rightParsed.data[index][1]) / 2
+      ]),
+      metadata: { ...leftParsed.metadata }
+    };
+
+    const combinedParsedObj = {
+      L: leftParsed,
+      R: rightParsed,
+      AVG: avgParsed
+    };
+
+    // Insert to Graph
+    await DataProvider.insertRawFRData("phone", fullIdentifier, combinedParsedObj, { dispSuffix });
+  }
+
+  async _fetchFile(url, channelFiles, fileName) {
+    const response = await fetch(url);
+    if (response.ok) {
+      const text = await response.text();
+      channelFiles.push(text);
+    } else {
+      throw new Error(`HTTP error fetching ${url}: ${response.status}`);
+    }
+  }
+
+  async _findFilesInPhoneBook(siteUrl, fileName) {
+    const phoneBookUrl = `${siteUrl}data/phone_book.json`;
+    try {
+      const response = await fetch(phoneBookUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const phoneBook = await response.json();
+
+      for (const entry of phoneBook) {
+        for (const phone of entry.phones) {
+          if (phone.file instanceof Array) {
+            if (phone.file.includes(fileName)) {
+              return phone.file;
+            }
+          } else {
+            if (phone.file === fileName) {
+              return [phone.file];
+            }
+          }
+        }
+      }
+      return [];
+    } catch (error) {
+      console.warn('Error fetching or parsing remote phone_book.json:', error);
+      return [];
+    }
   }
 }

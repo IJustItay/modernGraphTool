@@ -21,7 +21,7 @@ async function initializeDeviceEqPlugin(context) {
     window.showDeviceLogs = false;
 
     // Override console.log to capture logs
-    console.log = function() {
+    console.log = function () {
       // Convert arguments to string and add to history
       const logString = Array.from(arguments).map(arg =>
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
@@ -35,7 +35,7 @@ async function initializeDeviceEqPlugin(context) {
     };
 
     // Override console.error to capture errors
-    console.error = function() {
+    console.error = function () {
       // Convert arguments to string and add to history
       const logString = Array.from(arguments).map(arg =>
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
@@ -47,7 +47,7 @@ async function initializeDeviceEqPlugin(context) {
     };
 
     // Override console.warn to capture warnings
-    console.warn = function() {
+    console.warn = function () {
       // Convert arguments to string and add to history
       const logString = Array.from(arguments).map(arg =>
         typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
@@ -590,17 +590,17 @@ async function initializeDeviceEqPlugin(context) {
     } else {
       console.error('Element <div class="extra-eq"> not found in the DOM.');
     }
-// Open modal
+    // Open modal
     document.getElementById('deviceInfoBtn').addEventListener('click', () => {
       document.getElementById('deviceInfoModal').classList.remove('hidden');
     });
 
-// Close modal via close button
+    // Close modal via close button
     document.getElementById('closeModalBtn').addEventListener('click', () => {
       document.getElementById('deviceInfoModal').classList.add('hidden');
     });
 
-// Optional: close modal when clicking outside content
+    // Optional: close modal when clicking outside content
     document.getElementById('deviceInfoModal').addEventListener('click', (e) => {
       if (e.target.id === 'deviceInfoModal') {
         document.getElementById('deviceInfoModal').classList.add('hidden');
@@ -739,7 +739,9 @@ async function initializeDeviceEqPlugin(context) {
     const NetworkDeviceConnector = await NetworkDeviceConnectorAsync;
     console.log('NetworkDeviceConnector loaded');
 
-    if ('hid' in navigator) { // Only support browsers with HID support for now
+    const isMobileBrowser = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if ('hid' in navigator || isMobileBrowser) { // Support browsers with HID support or mobile browsers
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => initializeDeviceEQ());
       } else {
@@ -761,8 +763,10 @@ async function initializeDeviceEqPlugin(context) {
         // Connect Button Event Listener
         deviceEqUI.connectButton.addEventListener('click', async () => {
           try {
-            let selection =  {connectionType: "usb"}; // Assume usb only by default
-            if (context.config.advanced) {
+            let selection = { connectionType: "usb" }; // Assume usb only by default
+
+            // Show selection dialog if advanced config is on, or if we are on a mobile browser without WebHID
+            if (context.config.advanced || (isMobileBrowser && !('hid' in navigator))) {
               // Show a custom dialog to select Network or USB
               selection = await showDeviceSelectionDialog();
             }
@@ -1240,7 +1244,7 @@ async function initializeDeviceEqPlugin(context) {
             // Cancel
             document.getElementById("cancel-button").addEventListener("click", () => {
               document.body.removeChild(dialogContainer);
-              resolve({connectionType: "none"});
+              resolve({ connectionType: "none" });
             });
           });
         }
@@ -1251,9 +1255,9 @@ async function initializeDeviceEqPlugin(context) {
           try {
             if (deviceEqUI.connectionType == "network") {
               await NetworkDeviceConnector.disconnectDevice();
-            } else if (deviceEqUI.connectionType == "usb")  {
+            } else if (deviceEqUI.connectionType == "usb") {
               await UsbHIDConnector.disconnectDevice();
-            } else if (deviceEqUI.connectionType == "serial")  {
+            } else if (deviceEqUI.connectionType == "serial") {
               await UsbSerialConnector.disconnectDevice();
             }
             deviceEqUI.showDisconnectedState();
@@ -1426,7 +1430,7 @@ async function initializeDeviceEqPlugin(context) {
       }
     }
   } catch (error) {
-    console.  error("Error initializing Device EQ Plugin:", error.message);
+    console.error("Error initializing Device EQ Plugin:", error.message);
   }
 }
 

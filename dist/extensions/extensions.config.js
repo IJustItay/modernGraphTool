@@ -44,29 +44,39 @@ export const EXTENSION_CONFIG = [
     I18N_ENABLED: true,
     CONFIG: {
       FILTERS: [
-        { id: "tilt", name: "Tilt", description: "Filter for adjusting the overall tonal balance",
-          type: "TILT", freq: 0, q: 0 },
-        { id: "bass", name: "Bass", description: "Filter for adjusting low frequencies",
-          type: "LSQ", freq: 105, q: 0.707 },
-        { id: "treble", name: "Treble", description: "Filter for adjusting high frequencies",
-          type: "HSQ", freq: 2500, q: 0.42 },
-        { id: "ear", name: "Ear", description: "Filter for adjusting ear gain",
-          type: "PK", freq: 2750, q: 1 },
-        { id: "pssr", name: "PSSR", description: "Predicted Steady State Response",
-          type: "HSQ", freq: 500, q: 0.4 },
+        {
+          id: "tilt", name: "Tilt", description: "Filter for adjusting the overall tonal balance",
+          type: "TILT", freq: 0, q: 0
+        },
+        {
+          id: "bass", name: "Bass", description: "Filter for adjusting low frequencies",
+          type: "LSQ", freq: 105, q: 0.707
+        },
+        {
+          id: "treble", name: "Treble", description: "Filter for adjusting high frequencies",
+          type: "HSQ", freq: 2500, q: 0.42
+        },
+        {
+          id: "ear", name: "Ear", description: "Filter for adjusting ear gain",
+          type: "PK", freq: 2750, q: 1
+        },
+        {
+          id: "pssr", name: "PSSR", description: "Predicted Steady State Response",
+          type: "HSQ", freq: 500, q: 0.4
+        },
       ],
       // Targets that can be customized
-      CUSTOMIZABLE_TARGETS: [ "KEMAR DF (KB006x)", "ISO 11904-2 DF" ],
+      CUSTOMIZABLE_TARGETS: ["KEMAR DF (KB006x)", "ISO 11904-2 DF"],
       // Filter Preset
       FILTER_PRESET: [
-        { name: 'Harman 2013', filter: { bass: 6.6, treble: -1.4 }},
-        { name: 'Harman 2015', filter: { bass: 6.6, treble: -3, ear: -1.8 }},
-        { name: 'Harman 2018', filter: { bass: 4.8, treble: -4.4 }},
+        { name: 'Harman 2013', filter: { bass: 6.6, treble: -1.4 } },
+        { name: 'Harman 2015', filter: { bass: 6.6, treble: -3, ear: -1.8 } },
+        { name: 'Harman 2018', filter: { bass: 4.8, treble: -4.4 } },
       ],
       // Applies custom filter to the specified target on initial load
       INITIAL_TARGET_FILTERS: [
-        { name: "KEMAR DF (KB006x)", filter: { tilt: -0.8, bass: 6 }},
-        { name: "ISO 11904-2 DF", filter: { tilt: -0.8, bass: 6 }},
+        { name: "KEMAR DF (KB006x)", filter: { tilt: -0.8, bass: 6 } },
+        { name: "ISO 11904-2 DF", filter: { tilt: -0.8, bass: 6 } },
       ]
     }
   },
@@ -86,7 +96,7 @@ export const EXTENSION_CONFIG = [
       // This file must be inside /extensions/preference-bound/data/.
       // When 'BOUND_DATA_FILE' is set to 'Bounds', it will look for the file 'Bounds U.txt' and 'Bounds D.txt'
       // ... where 'U' and 'D' stand for Upper and Lower Bound respectively.
-      BOUND_DATA_FILE: "Bounds", 
+      BOUND_DATA_FILE: "Bounds",
       // Preference Bound requires base Diffuse Target to be drawn upon.
       // Since original concept of Preference Bound was made upon 5128 DF targets,
       // ... it's generally recommended to use Diffuse Field Targets as baseline,
@@ -101,7 +111,7 @@ export const EXTENSION_CONFIG = [
   {
     NAME: "squiglink-integration",
     DESCRIPTION: `squig.link integration for modernGraphTool`,
-    ENABLED: false,
+    ENABLED: true,
     CONFIG: {
       // Set these variables to your own GTM ID and site name
       ANALYTICS_SITE: "",       // Site name for attributing analytics events to your site

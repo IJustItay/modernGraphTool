@@ -31,6 +31,14 @@ export default {
           src: 'extensions/equalizer/util/equalizer.worker.js',
           dest: 'dist/extensions/equalizer/util',
         },
+        {
+          src: 'extensions/equalizer/util/autoeq.js',
+          dest: 'dist/extensions/equalizer/util',
+        },
+        {
+          src: 'extensions/equalizer/util/autoeq-wasm.js',
+          dest: 'dist/extensions/equalizer/util',
+        },
       ],
       hook: 'writeBundle'
     })
