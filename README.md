@@ -17,7 +17,7 @@ Also available in Squiglink : https://silicagel.squig.link
 This fork of `modernGraphTool` includes several massive upgrades developed by **[IJustItay](https://github.com/IJustItay)**:
 *   **AutoEQ WebAssembly Engine**: Integrated the `peqdb/autoeq-c` library directly into the modernGraphTool web worker for zero-latency, background thread filter calculations using WebAssembly.
 *   **Native SquigLoader**: Deep integrated `dov-vai/SquigLoader` capabilities. Allows you to seamlessly fetch and import external reviewer targets (e.g. crinacle, kr0mka, Super* Review) natively into the FR parser.
-*   **Mobile Device PEQ Connect**: Bypassed strict `navigator.hid` requirements to allow cross-platform browser support for the Device Connect plugin, enabling Network/Bluetooth PEQ pushing straight from mobile devices.
+*   **Mobile Device PEQ Connect**: Bypassed strict `navigator.hid` requirements to allow cross-platform browser support for the Device Connect plugin, enabling Network/Bluetooth PEQ pushing straight from mobile devices. Added `WebUSB` polyfill to allow compatible Type-C EQ devices (with multi-HID interfaces) to connect via Android Chrome. *(Note: Android natively locks devices with a single HID interface used for volume keys, e.g. Protocol Max. These require a native app bypass or PC WebHID).*
 
 ## Download
 
