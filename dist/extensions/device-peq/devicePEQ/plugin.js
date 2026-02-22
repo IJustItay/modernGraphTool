@@ -804,11 +804,13 @@ async function initializeDeviceEqPlugin(context) {
                 }
               }
             } else if (selection.connectionType == "usb") {
-              // Connect via USB and show the HID device picker
-              const device = await UsbHIDConnector.getDeviceConnected();
+              const ConnectorClass = ('hid' in navigator) ? UsbHIDConnector : await import('./usbWebUsbConnector.js').then((module) => module.UsbWebUsbConnector);
+
+              // Connect via USB and show the HID/USB device picker
+              const device = await ConnectorClass.getDeviceConnected();
               if (device?.handler == null) {
                 showToast("Sorry, this USB device is not currently supported.", "error");
-                await UsbHIDConnector.disconnectDevice();
+                await ConnectorClass.disconnectDevice();
                 return;
               }
               if (device) {
@@ -823,7 +825,7 @@ async function initializeDeviceEqPlugin(context) {
                   // Show warning popup for experimental devices
                   const proceedWithConnection = await showExperimentalDeviceWarning(device.model);
                   if (!proceedWithConnection) {
-                    await UsbHIDConnector.disconnectDevice();
+                    await ConnectorClass.disconnectDevice();
                     return;
                   }
                 }
@@ -831,8 +833,8 @@ async function initializeDeviceEqPlugin(context) {
                 deviceEqUI.showConnectedState(
                   device,
                   selection.connectionType,
-                  await UsbHIDConnector.getAvailableSlots(device),
-                  await UsbHIDConnector.getCurrentSlot(device)
+                  await ConnectorClass.getAvailableSlots(device),
+                  await ConnectorClass.getCurrentSlot(device)
                 );
 
                 // Check if device supports fewer filters than currently in context
