@@ -23,26 +23,34 @@ export const UsbWebUsbConnector = (async function () {
             if (!this.opened) {
                 await this.usbDevice.open();
 
-                if (this.usbDevice.configuration === null) {
-                    await this.usbDevice.selectConfiguration(1);
+                if (this.usbDevice.configuration === null && this.usbDevice.configurations.length > 0) {
+                    await this.usbDevice.selectConfiguration(this.usbDevice.configurations[0].configurationValue);
                 }
 
                 // Find the HID interface
                 const config = this.usbDevice.configuration;
-                for (const iface of config.interfaces) {
-                    const alt = iface.alternates[0];
-                    if (alt.interfaceClass === 3) { // HID class
-                        this._hidInterface = iface.interfaceNumber;
-                        this._inEndpoint = alt.endpoints.find(e => e.direction === 'in');
-                        break;
+                let claimed = false;
+                if (config) {
+                    for (const iface of config.interfaces) {
+                        const alt = iface.alternates[0];
+                        if (alt.interfaceClass === 3 || alt.interfaceClass === 255) { // HID or Vendor-Specific
+                            try {
+                                await this.usbDevice.claimInterface(iface.interfaceNumber);
+                                this._hidInterface = iface.interfaceNumber;
+                                this._inEndpoint = alt.endpoints ? alt.endpoints.find(e => e.direction === 'in') : null;
+                                claimed = true;
+                                break;
+                            } catch (e) {
+                                console.warn(`Could not claim interface ${iface.interfaceNumber}: ${e.message}`);
+                            }
+                        }
                     }
                 }
 
-                if (this._hidInterface !== null) {
-                    await this.usbDevice.claimInterface(this._hidInterface);
+                if (claimed) {
                     this._startPolling();
                 } else {
-                    console.warn("No HID interface found for WebUSB device");
+                    throw new Error("No claimable HID or Vendor interface found. Ensure device is not exclusively locked by the OS.");
                 }
 
                 this.opened = true;
@@ -177,7 +185,11 @@ export const UsbWebUsbConnector = (async function () {
                 }
 
                 if (!rawDevice.opened) {
-                    await rawDevice.open();
+                    try {
+                        await rawDevice.open();
+                    } catch (e) {
+                        return { error: e.message };
+                    }
                 }
                 currentDevice = {
                     rawDevice: rawDevice,
@@ -191,7 +203,10 @@ export const UsbWebUsbConnector = (async function () {
             }
         } catch (error) {
             console.error("Failed to connect to USB device:", error);
-            return null;
+            if (error.name === "NotFoundError" || error.name === "NotAllowedError" || error.message.includes("cancelled")) {
+                return null; // User cancelled
+            }
+            return { error: error.message };
         }
     };
 

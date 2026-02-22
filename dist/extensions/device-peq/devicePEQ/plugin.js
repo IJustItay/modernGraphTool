@@ -808,11 +808,24 @@ async function initializeDeviceEqPlugin(context) {
 
               // Connect via USB and show the HID/USB device picker
               const device = await ConnectorClass.getDeviceConnected();
+
+              if (device === null) {
+                // User cancelled the prompt, do nothing
+                return;
+              }
+
+              if (device && device.error) {
+                showToast("Connection failed: " + device.error, "error");
+                await ConnectorClass.disconnectDevice();
+                return;
+              }
+
               if (device?.handler == null) {
                 showToast("Sorry, this USB device is not currently supported.", "error");
                 await ConnectorClass.disconnectDevice();
                 return;
               }
+
               if (device) {
                 // Check if the device is experimental
                 const isExperimental = device.modelConfig?.experimental === true;
